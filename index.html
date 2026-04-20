@@ -129,6 +129,38 @@
     .btn-primary:hover { background: #4338CA; }
     .btn-primary:active { transform: scale(0.98); }
 
+    .google-btn {
+      width: 100%;
+      padding: 14px 20px;
+      background: white;
+      color: #3c4043;
+      border: 1px solid #dadce0;
+      border-radius: var(--radius-sm);
+      font-size: 16px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+
+    .google-btn:hover {
+      background: #f7f8f8;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    }
+
+    .google-btn:active { transform: scale(0.98); }
+
+    .user-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
     .btn-secondary {
       background: none;
       border: 2px solid var(--border);
@@ -928,11 +960,10 @@
     <div class="logo">📋</div>
     <h1>Task Manager</h1>
     <p>Manage your work projects and MSc tasks in one place</p>
-    <div class="auth-input-group">
-      <label>Your Name</label>
-      <input type="text" id="auth-name" placeholder="Enter your name" autocomplete="name">
-    </div>
-    <button class="btn-primary" onclick="loginUser()">Get Started</button>
+    <button class="google-btn" onclick="signInWithGoogle()">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.08 24.08 0 0 0 0 21.56l7.98-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Sign in with Google
+    </button>
     <div style="margin-top:24px;color:var(--text-secondary);font-size:13px;">
       Your data is synced across devices via Firebase
     </div>
@@ -1118,6 +1149,8 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
   import { getDatabase, ref, set, push, remove, update, onValue, get }
     from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut }
+    from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCbROM5P6lzoIel1C63cqXXMM5gNyhUSm8",
@@ -1131,8 +1164,10 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
+  const auth = getAuth(app);
+  const googleProvider = new GoogleAuthProvider();
 
-  let currentUser = localStorage.getItem('task_manager_user');
+  let firebaseUser = null;
   let currentView = 'work-all';
   let allData = { work: { projects: {}, generalTasks: {}, notes: {} }, edu: { projects: {}, generalTasks: {}, notes: {} } };
   let editingTaskId = null;
@@ -1142,22 +1177,33 @@
   let unsubscribers = [];
 
   function userPath() {
-    return `taskManager/${currentUser.replace(/[.#$\/\[\]]/g, '_')}`;
+    return `taskManager/${firebaseUser.uid}`;
   }
 
-  function init() {
-    if (currentUser) {
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      firebaseUser = user;
       showApp();
     } else {
+      firebaseUser = null;
+      unsubscribers.forEach(u => u());
+      unsubscribers = [];
       document.getElementById('auth-screen').classList.remove('hidden');
       document.getElementById('app').classList.add('hidden');
     }
-  }
+  });
 
   function showApp() {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
-    document.getElementById('user-display-name').textContent = currentUser;
+
+    const nameEl = document.getElementById('user-display-name');
+    if (firebaseUser.photoURL) {
+      nameEl.innerHTML = `<img src="${firebaseUser.photoURL}" class="user-avatar" referrerpolicy="no-referrer"> ${escapeHtml(firebaseUser.displayName || firebaseUser.email)}`;
+    } else {
+      nameEl.textContent = firebaseUser.displayName || firebaseUser.email;
+    }
+
     listenToData();
     navigateTo('work-all');
   }
@@ -1181,21 +1227,15 @@
     unsubscribers.push(unsub);
   }
 
-  window.loginUser = function() {
-    const name = document.getElementById('auth-name').value.trim();
-    if (!name) return;
-    currentUser = name;
-    localStorage.setItem('task_manager_user', name);
-    showApp();
+  window.signInWithGoogle = function() {
+    signInWithPopup(auth, googleProvider).catch(err => {
+      console.error('Sign-in error:', err);
+      alert('Sign-in failed. Please try again.');
+    });
   };
 
   window.logout = function() {
-    localStorage.removeItem('task_manager_user');
-    currentUser = null;
-    unsubscribers.forEach(u => u());
-    unsubscribers = [];
-    document.getElementById('auth-screen').classList.remove('hidden');
-    document.getElementById('app').classList.add('hidden');
+    signOut(auth);
   };
 
   window.toggleSidebar = function() {
