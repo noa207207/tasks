@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#4F46E5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Task Manager</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4F46E5;
+      --primary-light: #818CF8;
+      --primary-bg: #EEF2FF;
+      --accent: #F59E0B;
+      --danger: #EF4444;
+      --success: #10B981;
+      --text: #1E293B;
+      --text-secondary: #64748B;
+      --bg: #F8FAFC;
+      --card: #FFFFFF;
+      --border: #E2E8F0;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --sidebar-width: 280px;
+      --header-height: 60px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    /* Auth Screen */
+    .auth-screen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+      padding: 20px;
+    }
+
+    .auth-card {
+      background: var(--card);
+      border-radius: 20px;
+      padding: 48px 40px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+
+    .auth-card h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--primary);
+    }
+
+    .auth-card p {
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+      font-size: 15px;
+    }
+
+    .auth-card .logo {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .auth-input-group {
+      text-align: left;
+      margin-bottom: 16px;
+    }
+
+    .auth-input-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .auth-input-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 16px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    .auth-input-group input:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 16px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      margin-top: 8px;
+    }
+
+    .btn-primary:hover { background: #4338CA; }
+    .btn-primary:active { transform: scale(0.98); }
+
+    .btn-secondary {
+      background: none;
+      border: 2px solid var(--border);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 12px;
+      width: 100%;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .hidden { display: none !important; }
+
+    /* App Layout */
+    .app-layout {
+      display: flex;
+      min-height: 100dvh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-header {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-header h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-header .user-name {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+    }
+
+    .nav-section {
+      margin-bottom: 20px;
+    }
+
+    .nav-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+      padding: 0 12px;
+      margin-bottom: 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      user-select: none;
+      position: relative;
+    }
+
+    .nav-item:hover { background: var(--primary-bg); }
+
+    .nav-item.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .nav-item .icon { font-size: 18px; width: 24px; text-align: center; }
+
+    .nav-item .badge {
+      margin-left: auto;
+      background: var(--primary-bg);
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .nav-item.active .badge {
+      background: rgba(255,255,255,0.2);
+      color: white;
+    }
+
+    .nav-item.add-project {
+      color: var(--primary);
+      font-weight: 600;
+      border: 1px dashed var(--primary-light);
+      margin-top: 4px;
+    }
+
+    .nav-item.add-project:hover {
+      background: var(--primary-bg);
+    }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .sidebar-footer .nav-item {
+      color: var(--text-secondary);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      display: flex;
+      flex-direction: column;
+      min-height: 100dvh;
+    }
+
+    .main-header {
+      height: var(--header-height);
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--text);
+    }
+
+    .main-header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      flex: 1;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--card);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: all 0.15s;
+    }
+
+    .btn-icon:hover {
+      background: var(--primary-bg);
+      border-color: var(--primary-light);
+    }
+
+    .main-body {
+      flex: 1;
+      padding: 24px;
+      max-width: 1000px;
+      width: 100%;
+    }
+
+    /* Task List */
+    .task-filters {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--text-secondary);
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .filter-btn:hover:not(.active) {
+      border-color: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .task-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: all 0.15s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .task-card:hover {
+      box-shadow: var(--shadow);
+      border-color: var(--primary-light);
+    }
+
+    .task-card.completed {
+      opacity: 0.6;
+    }
+
+    .task-card.completed .task-title {
+      text-decoration: line-through;
+    }
+
+    .task-checkbox {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+      transition: all 0.15s;
+    }
+
+    .task-checkbox:hover {
+      border-color: var(--primary);
+    }
+
+    .task-checkbox.checked {
+      background: var(--success);
+      border-color: var(--success);
+      color: white;
+      font-size: 12px;
+    }
+
+    .task-info { flex: 1; min-width: 0; }
+
+    .task-title {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+
+    .task-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .task-meta span {
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .priority-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .priority-high { background: var(--danger); }
+    .priority-medium { background: var(--accent); }
+    .priority-low { background: var(--success); }
+
+    .task-actions {
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .task-card:hover .task-actions { opacity: 1; }
+
+    .task-action-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: background 0.15s;
+    }
+
+    .task-action-btn:hover { background: var(--primary-bg); }
+    .task-action-btn.delete:hover { background: #FEE2E2; }
+
+    .add-task-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .add-task-bar input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .add-task-bar input:focus { border-color: var(--primary); }
+
+    .add-task-bar button {
+      padding: 12px 24px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+
+    .add-task-bar button:hover { background: #4338CA; }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .empty-state h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    /* Notes View */
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .note-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .note-card:hover {
+      box-shadow: var(--shadow);
+      border-color: var(--primary-light);
+    }
+
+    .note-card h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      word-break: break-word;
+    }
+
+    .note-card p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      word-break: break-word;
+    }
+
+    .note-card .note-date {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 12px;
+    }
+
+    .note-card .note-delete {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      opacity: 0;
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: #FEE2E2;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: opacity 0.15s;
+    }
+
+    .note-card:hover .note-delete { opacity: 1; }
+
+    .add-note-card {
+      background: var(--primary-bg);
+      border: 2px dashed var(--primary-light);
+      border-radius: var(--radius);
+      padding: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 14px;
+      min-height: 140px;
+      transition: all 0.15s;
+    }
+
+    .add-note-card:hover {
+      background: #E0E7FF;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal {
+      background: var(--card);
+      border-radius: 16px;
+      max-width: 520px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+
+    .modal-close:hover { background: var(--primary-bg); }
+
+    .modal-body { padding: 24px; }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+      background: var(--card);
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      border-color: var(--primary);
+    }
+
+    .form-group textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .modal-footer button {
+      padding: 10px 24px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .modal-footer .btn-cancel {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .modal-footer .btn-cancel:hover {
+      background: var(--bg);
+    }
+
+    .modal-footer .btn-save {
+      background: var(--primary);
+      color: white;
+      border: none;
+    }
+
+    .modal-footer .btn-save:hover { background: #4338CA; }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.3);
+      z-index: 90;
+    }
+
+    .color-options {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .color-option {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .color-option:hover, .color-option.selected {
+      border-color: var(--text);
+      transform: scale(1.15);
+    }
+
+    /* Dashboard stats */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      text-align: center;
+    }
+
+    .stat-card .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .stat-card .stat-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-top: 4px;
+    }
+
+    /* Progress bar */
+    .progress-bar-container {
+      background: var(--border);
+      border-radius: 10px;
+      height: 8px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      border-radius: 10px;
+      transition: width 0.5s ease;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .sidebar-overlay.visible {
+        display: block;
+      }
+
+      .main-content {
+        margin-left: 0;
+      }
+
+      .menu-toggle {
+        display: block;
+      }
+
+      .main-body {
+        padding: 16px;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .task-actions {
+        opacity: 1;
+      }
+
+      .note-card .note-delete {
+        opacity: 1;
+      }
+
+      .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Transitions */
+    .fade-in {
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Drag handle for project reorder hint */
+    .project-actions {
+      display: flex;
+      gap: 2px;
+      margin-left: auto;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .nav-item:hover .project-actions { opacity: 1; }
+
+    .project-action-btn {
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: none;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      transition: background 0.15s;
+    }
+
+    .project-action-btn:hover { background: rgba(255,255,255,0.2); }
+    .nav-item:not(.active) .project-action-btn:hover { background: var(--primary-bg); }
+
+    .overdue { color: var(--danger) !important; font-weight: 600 !important; }
+  </style>
+</head>
+<body>
+
+<!-- Auth Screen -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-card">
+    <div class="logo">📋</div>
+    <h1>Task Manager</h1>
+    <p>Manage your work projects and MSc tasks in one place</p>
+    <div class="auth-input-group">
+      <label>Your Name</label>
+      <input type="text" id="auth-name" placeholder="Enter your name" autocomplete="name">
+    </div>
+    <button class="btn-primary" onclick="loginUser()">Get Started</button>
+    <div style="margin-top:24px;color:var(--text-secondary);font-size:13px;">
+      Your data is synced across devices via Firebase
+    </div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="app" class="app-layout hidden">
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>📋 Tasks</h2>
+      <div class="user-name" id="user-display-name"></div>
+    </div>
+    <nav class="sidebar-nav">
+
+      <!-- Work Section -->
+      <div class="nav-section">
+        <div class="nav-section-title">💼 Work</div>
+        <div class="nav-item" data-view="work-all" onclick="navigateTo('work-all')">
+          <span class="icon">📊</span> Dashboard
+        </div>
+        <div class="nav-item" data-view="work-general" onclick="navigateTo('work-general')">
+          <span class="icon">📌</span> General Tasks
+          <span class="badge" id="badge-work-general">0</span>
+        </div>
+        <div id="work-projects-list"></div>
+        <div class="nav-item add-project" onclick="openProjectModal('work')">
+          <span class="icon">+</span> Add Project
+        </div>
+        <div class="nav-item" data-view="work-notes" onclick="navigateTo('work-notes')">
+          <span class="icon">📝</span> Notes
+        </div>
+      </div>
+
+      <!-- Education Section -->
+      <div class="nav-section">
+        <div class="nav-section-title">🎓 MSc Education</div>
+        <div class="nav-item" data-view="edu-all" onclick="navigateTo('edu-all')">
+          <span class="icon">📊</span> Dashboard
+        </div>
+        <div class="nav-item" data-view="edu-general" onclick="navigateTo('edu-general')">
+          <span class="icon">📌</span> General Tasks
+          <span class="badge" id="badge-edu-general">0</span>
+        </div>
+        <div id="edu-projects-list"></div>
+        <div class="nav-item add-project" onclick="openProjectModal('edu')">
+          <span class="icon">+</span> Add Course
+        </div>
+        <div class="nav-item" data-view="edu-notes" onclick="navigateTo('edu-notes')">
+          <span class="icon">📝</span> Notes
+        </div>
+      </div>
+
+    </nav>
+    <div class="sidebar-footer">
+      <div class="nav-item" onclick="logout()">
+        <span class="icon">🚪</span> Sign Out
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Area -->
+  <div class="main-content">
+    <header class="main-header">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <h1 id="view-title">Dashboard</h1>
+      <div class="header-actions">
+        <button class="btn-icon" onclick="openTaskModal()" title="Add Task">＋</button>
+      </div>
+    </header>
+    <div class="main-body" id="main-body">
+    </div>
+  </div>
+</div>
+
+<!-- Task Modal -->
+<div id="task-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal('task-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="task-modal-title">New Task</h2>
+      <button class="modal-close" onclick="closeModal('task-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="task-title-input" placeholder="What needs to be done?">
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="task-desc-input" placeholder="Add details..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Priority</label>
+          <select id="task-priority-input">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Due Date</label>
+          <input type="date" id="task-due-input">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select id="task-category-input"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('task-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveTask()">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Note Modal -->
+<div id="note-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal('note-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="note-modal-title">New Note</h2>
+      <button class="modal-close" onclick="closeModal('note-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="note-title-input" placeholder="Note title">
+      </div>
+      <div class="form-group">
+        <label>Content</label>
+        <textarea id="note-content-input" placeholder="Write your note..." style="min-height:200px"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Color</label>
+        <div class="color-options">
+          <div class="color-option selected" data-color="#FFFFFF" style="background:#FFFFFF;border:1px solid #ddd" onclick="selectNoteColor(this)"></div>
+          <div class="color-option" data-color="#FEF3C7" style="background:#FEF3C7" onclick="selectNoteColor(this)"></div>
+          <div class="color-option" data-color="#DBEAFE" style="background:#DBEAFE" onclick="selectNoteColor(this)"></div>
+          <div class="color-option" data-color="#D1FAE5" style="background:#D1FAE5" onclick="selectNoteColor(this)"></div>
+          <div class="color-option" data-color="#FCE7F3" style="background:#FCE7F3" onclick="selectNoteColor(this)"></div>
+          <div class="color-option" data-color="#EDE9FE" style="background:#EDE9FE" onclick="selectNoteColor(this)"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('note-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveNote()">Save Note</button>
+    </div>
+  </div>
+</div>
+
+<!-- Project Modal -->
+<div id="project-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal('project-modal')">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="project-modal-title">New Project</h2>
+      <button class="modal-close" onclick="closeModal('project-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="project-name-input" placeholder="Project name">
+      </div>
+      <div class="form-group">
+        <label>Icon (emoji)</label>
+        <input type="text" id="project-icon-input" placeholder="📁" maxlength="4" style="width:80px;text-align:center;font-size:24px">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal('project-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveProject()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getDatabase, ref, set, push, remove, update, onValue, get }
+    from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCbROM5P6lzoIel1C63cqXXMM5gNyhUSm8",
+    authDomain: "budget-ed5f1.firebaseapp.com",
+    databaseURL: "https://budget-ed5f1-default-rtdb.firebaseio.com",
+    projectId: "budget-ed5f1",
+    storageBucket: "budget-ed5f1.firebasestorage.app",
+    messagingSenderId: "294200259820",
+    appId: "1:294200259820:web:96bdfdb7828e411aed61c9"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  let currentUser = localStorage.getItem('task_manager_user');
+  let currentView = 'work-all';
+  let allData = { work: { projects: {}, generalTasks: {}, notes: {} }, edu: { projects: {}, generalTasks: {}, notes: {} } };
+  let editingTaskId = null;
+  let editingNoteId = null;
+  let editingProjectSection = null;
+  let selectedNoteColor = '#FFFFFF';
+  let unsubscribers = [];
+
+  function userPath() {
+    return `taskManager/${currentUser.replace(/[.#$\/\[\]]/g, '_')}`;
+  }
+
+  function init() {
+    if (currentUser) {
+      showApp();
+    } else {
+      document.getElementById('auth-screen').classList.remove('hidden');
+      document.getElementById('app').classList.add('hidden');
+    }
+  }
+
+  function showApp() {
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    document.getElementById('user-display-name').textContent = currentUser;
+    listenToData();
+    navigateTo('work-all');
+  }
+
+  function listenToData() {
+    unsubscribers.forEach(u => u());
+    unsubscribers = [];
+
+    const dataRef = ref(db, userPath());
+    const unsub = onValue(dataRef, snap => {
+      const d = snap.val() || {};
+      allData.work.projects = d.workProjects || {};
+      allData.work.generalTasks = d.workGeneralTasks || {};
+      allData.work.notes = d.workNotes || {};
+      allData.edu.projects = d.eduProjects || {};
+      allData.edu.generalTasks = d.eduGeneralTasks || {};
+      allData.edu.notes = d.eduNotes || {};
+      renderSidebar();
+      renderView();
+    });
+    unsubscribers.push(unsub);
+  }
+
+  window.loginUser = function() {
+    const name = document.getElementById('auth-name').value.trim();
+    if (!name) return;
+    currentUser = name;
+    localStorage.setItem('task_manager_user', name);
+    showApp();
+  };
+
+  window.logout = function() {
+    localStorage.removeItem('task_manager_user');
+    currentUser = null;
+    unsubscribers.forEach(u => u());
+    unsubscribers = [];
+    document.getElementById('auth-screen').classList.remove('hidden');
+    document.getElementById('app').classList.add('hidden');
+  };
+
+  window.toggleSidebar = function() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('visible');
+  };
+
+  window.navigateTo = function(view) {
+    currentView = view;
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    const navEl = document.querySelector(`.nav-item[data-view="${view}"]`);
+    if (navEl) navEl.classList.add('active');
+
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('visible');
+
+    renderView();
+  };
+
+  function renderSidebar() {
+    renderProjectList('work', allData.work.projects, 'work-projects-list');
+    renderProjectList('edu', allData.edu.projects, 'edu-projects-list');
+    updateBadges();
+  }
+
+  function renderProjectList(section, projects, containerId) {
+    const container = document.getElementById(containerId);
+    let html = '';
+    for (const [id, proj] of Object.entries(projects)) {
+      const taskCount = proj.tasks ? Object.values(proj.tasks).filter(t => !t.completed).length : 0;
+      const viewId = `${section}-project-${id}`;
+      const isActive = currentView === viewId ? 'active' : '';
+      html += `
+        <div class="nav-item ${isActive}" data-view="${viewId}" onclick="navigateTo('${viewId}')">
+          <span class="icon">${proj.icon || '📁'}</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(proj.name)}</span>
+          <span class="badge">${taskCount}</span>
+          <div class="project-actions">
+            <button class="project-action-btn" onclick="event.stopPropagation();deleteProject('${section}','${id}')" title="Delete">🗑</button>
+          </div>
+        </div>`;
+    }
+    container.innerHTML = html;
+  }
+
+  function updateBadges() {
+    const workGenCount = Object.values(allData.work.generalTasks).filter(t => !t.completed).length;
+    const eduGenCount = Object.values(allData.edu.generalTasks).filter(t => !t.completed).length;
+    document.getElementById('badge-work-general').textContent = workGenCount;
+    document.getElementById('badge-edu-general').textContent = eduGenCount;
+  }
+
+  function renderView() {
+    const body = document.getElementById('main-body');
+    const titleEl = document.getElementById('view-title');
+
+    if (currentView === 'work-all') {
+      titleEl.textContent = '💼 Work Dashboard';
+      renderDashboard(body, 'work');
+    } else if (currentView === 'edu-all') {
+      titleEl.textContent = '🎓 MSc Dashboard';
+      renderDashboard(body, 'edu');
+    } else if (currentView === 'work-general') {
+      titleEl.textContent = '💼 General Work Tasks';
+      renderTaskList(body, allData.work.generalTasks, 'workGeneralTasks');
+    } else if (currentView === 'edu-general') {
+      titleEl.textContent = '🎓 General Education Tasks';
+      renderTaskList(body, allData.edu.generalTasks, 'eduGeneralTasks');
+    } else if (currentView === 'work-notes') {
+      titleEl.textContent = '💼 Work Notes';
+      renderNotes(body, allData.work.notes, 'workNotes');
+    } else if (currentView === 'edu-notes') {
+      titleEl.textContent = '🎓 Education Notes';
+      renderNotes(body, allData.edu.notes, 'eduNotes');
+    } else if (currentView.startsWith('work-project-') || currentView.startsWith('edu-project-')) {
+      const section = currentView.startsWith('work') ? 'work' : 'edu';
+      const projId = currentView.replace(`${section}-project-`, '');
+      const proj = allData[section].projects[projId];
+      if (proj) {
+        titleEl.textContent = `${proj.icon || '📁'} ${proj.name}`;
+        const dbPath = section === 'work' ? `workProjects/${projId}/tasks` : `eduProjects/${projId}/tasks`;
+        renderTaskList(body, proj.tasks || {}, dbPath);
+      } else {
+        navigateTo(section === 'work' ? 'work-all' : 'edu-all');
+      }
+    }
+  }
+
+  function renderDashboard(container, section) {
+    const data = allData[section];
+    let allTasks = [...Object.values(data.generalTasks)];
+    for (const proj of Object.values(data.projects)) {
+      if (proj.tasks) allTasks.push(...Object.values(proj.tasks));
+    }
+
+    const total = allTasks.length;
+    const completed = allTasks.filter(t => t.completed).length;
+    const pending = total - completed;
+    const highPriority = allTasks.filter(t => !t.completed && t.priority === 'high').length;
+    const overdue = allTasks.filter(t => !t.completed && t.dueDate && new Date(t.dueDate) < new Date(new Date().toDateString())).length;
+    const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    let upcoming = allTasks
+      .filter(t => !t.completed && t.dueDate)
+      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+      .slice(0, 5);
+
+    let html = `
+      <div class="stats-row fade-in">
+        <div class="stat-card">
+          <div class="stat-value">${pending}</div>
+          <div class="stat-label">Pending Tasks</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">${completed}</div>
+          <div class="stat-label">Completed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color:var(--danger)">${highPriority}</div>
+          <div class="stat-label">High Priority</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" style="color:${overdue > 0 ? 'var(--danger)' : 'var(--success)'}">${overdue}</div>
+          <div class="stat-label">Overdue</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:8px;font-size:14px;color:var(--text-secondary)">
+        Overall Progress: ${pct}%
+      </div>
+      <div class="progress-bar-container" style="margin-bottom:32px">
+        <div class="progress-bar-fill" style="width:${pct}%"></div>
+      </div>
+    `;
+
+    if (upcoming.length > 0) {
+      html += `<h3 style="font-size:16px;margin-bottom:12px">📅 Upcoming Deadlines</h3>
+      <div class="task-list" style="margin-bottom:32px">`;
+      for (const t of upcoming) {
+        const isOverdue = new Date(t.dueDate) < new Date(new Date().toDateString());
+        html += `
+          <div class="task-card">
+            <div class="task-info">
+              <div class="task-title">${escapeHtml(t.title)}</div>
+              <div class="task-meta">
+                <span><span class="priority-dot priority-${t.priority}"></span> ${t.priority}</span>
+                <span class="${isOverdue ? 'overdue' : ''}">📅 ${formatDate(t.dueDate)}</span>
+              </div>
+            </div>
+          </div>`;
+      }
+      html += '</div>';
+    }
+
+    const projects = Object.entries(data.projects);
+    if (projects.length > 0) {
+      html += `<h3 style="font-size:16px;margin-bottom:12px">${section === 'work' ? '📂 Projects' : '📚 Courses'}</h3>
+      <div class="notes-grid" style="margin-bottom:20px">`;
+      for (const [id, proj] of projects) {
+        const tasks = proj.tasks ? Object.values(proj.tasks) : [];
+        const done = tasks.filter(t => t.completed).length;
+        const projPct = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0;
+        const viewId = `${section}-project-${id}`;
+        html += `
+          <div class="note-card" onclick="navigateTo('${viewId}')" style="cursor:pointer">
+            <h3>${proj.icon || '📁'} ${escapeHtml(proj.name)}</h3>
+            <p>${tasks.length} tasks · ${done} completed</p>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" style="width:${projPct}%"></div>
+            </div>
+          </div>`;
+      }
+      html += '</div>';
+    }
+
+    container.innerHTML = html;
+  }
+
+  function renderTaskList(container, tasks, dbPath) {
+    const taskEntries = Object.entries(tasks);
+    let filter = 'all';
+
+    function render() {
+      let filtered = taskEntries;
+      if (filter === 'active') filtered = taskEntries.filter(([,t]) => !t.completed);
+      if (filter === 'completed') filtered = taskEntries.filter(([,t]) => t.completed);
+      if (filter === 'high') filtered = taskEntries.filter(([,t]) => !t.completed && t.priority === 'high');
+
+      filtered.sort((a, b) => {
+        if (a[1].completed !== b[1].completed) return a[1].completed ? 1 : -1;
+        const prioOrder = { high: 0, medium: 1, low: 2 };
+        if (prioOrder[a[1].priority] !== prioOrder[b[1].priority])
+          return prioOrder[a[1].priority] - prioOrder[b[1].priority];
+        return (b[1].createdAt || 0) - (a[1].createdAt || 0);
+      });
+
+      let html = `
+        <div class="add-task-bar">
+          <input type="text" id="quick-add-input" placeholder="Quick add a task..." onkeydown="if(event.key==='Enter')quickAddTask('${dbPath}')">
+          <button onclick="quickAddTask('${dbPath}')">Add</button>
+        </div>
+        <div class="task-filters">
+          <button class="filter-btn ${filter==='all'?'active':''}" onclick="window._setFilter('all')">All (${taskEntries.length})</button>
+          <button class="filter-btn ${filter==='active'?'active':''}" onclick="window._setFilter('active')">Active (${taskEntries.filter(([,t])=>!t.completed).length})</button>
+          <button class="filter-btn ${filter==='completed'?'active':''}" onclick="window._setFilter('completed')">Done (${taskEntries.filter(([,t])=>t.completed).length})</button>
+          <button class="filter-btn ${filter==='high'?'active':''}" onclick="window._setFilter('high')">🔴 High</button>
+        </div>
+        <div class="task-list">`;
+
+      if (filtered.length === 0) {
+        html += `
+          <div class="empty-state">
+            <div class="empty-icon">✅</div>
+            <h3>${filter === 'all' ? 'No tasks yet' : 'No matching tasks'}</h3>
+            <p>Add your first task above or click the + button</p>
+          </div>`;
+      }
+
+      for (const [id, t] of filtered) {
+        const isOverdue = !t.completed && t.dueDate && new Date(t.dueDate) < new Date(new Date().toDateString());
+        html += `
+          <div class="task-card ${t.completed ? 'completed' : ''} fade-in">
+            <div class="task-checkbox ${t.completed ? 'checked' : ''}" onclick="toggleTask('${dbPath}','${id}',${!t.completed})">
+              ${t.completed ? '✓' : ''}
+            </div>
+            <div class="task-info" onclick="openEditTask('${dbPath}','${id}')">
+              <div class="task-title">${escapeHtml(t.title)}</div>
+              <div class="task-meta">
+                <span><span class="priority-dot priority-${t.priority || 'medium'}"></span> ${t.priority || 'medium'}</span>
+                ${t.dueDate ? `<span class="${isOverdue ? 'overdue' : ''}">📅 ${formatDate(t.dueDate)}</span>` : ''}
+                ${t.description ? '<span>📝 Has notes</span>' : ''}
+              </div>
+            </div>
+            <div class="task-actions">
+              <button class="task-action-btn" onclick="openEditTask('${dbPath}','${id}')" title="Edit">✏️</button>
+              <button class="task-action-btn delete" onclick="deleteTask('${dbPath}','${id}')" title="Delete">🗑</button>
+            </div>
+          </div>`;
+      }
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    window._setFilter = function(f) { filter = f; render(); };
+    render();
+  }
+
+  function renderNotes(container, notes, dbPath) {
+    const noteEntries = Object.entries(notes).sort((a, b) => (b[1].updatedAt || 0) - (a[1].updatedAt || 0));
+
+    let html = `<div class="notes-grid">
+      <div class="add-note-card" onclick="openNoteModal('${dbPath}')">
+        <span style="font-size:24px">+</span> New Note
+      </div>`;
+
+    for (const [id, n] of noteEntries) {
+      html += `
+        <div class="note-card fade-in" style="background:${n.color || '#fff'}" onclick="openEditNote('${dbPath}','${id}')">
+          <button class="note-delete" onclick="event.stopPropagation();deleteNote('${dbPath}','${id}')">🗑</button>
+          <h3>${escapeHtml(n.title || 'Untitled')}</h3>
+          <p>${escapeHtml(n.content || '')}</p>
+          <div class="note-date">${n.updatedAt ? new Date(n.updatedAt).toLocaleDateString() : ''}</div>
+        </div>`;
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  // Task CRUD
+  window.quickAddTask = function(dbPath) {
+    const input = document.getElementById('quick-add-input');
+    const title = input.value.trim();
+    if (!title) return;
+    const taskRef = push(ref(db, `${userPath()}/${dbPath}`));
+    set(taskRef, {
+      title,
+      description: '',
+      priority: 'medium',
+      dueDate: '',
+      completed: false,
+      createdAt: Date.now()
+    });
+    input.value = '';
+  };
+
+  window.toggleTask = function(dbPath, taskId, completed) {
+    update(ref(db, `${userPath()}/${dbPath}/${taskId}`), { completed });
+  };
+
+  window.deleteTask = function(dbPath, taskId) {
+    if (confirm('Delete this task?')) {
+      remove(ref(db, `${userPath()}/${dbPath}/${taskId}`));
+    }
+  };
+
+  window.openTaskModal = function() {
+    editingTaskId = null;
+    document.getElementById('task-modal-title').textContent = 'New Task';
+    document.getElementById('task-title-input').value = '';
+    document.getElementById('task-desc-input').value = '';
+    document.getElementById('task-priority-input').value = 'medium';
+    document.getElementById('task-due-input').value = '';
+    populateCategorySelect();
+    document.getElementById('task-modal').classList.remove('hidden');
+    document.getElementById('task-title-input').focus();
+  };
+
+  window.openEditTask = function(dbPath, taskId) {
+    const parts = dbPath.split('/');
+    let task;
+    if (parts[0] === 'workGeneralTasks') task = allData.work.generalTasks[taskId];
+    else if (parts[0] === 'eduGeneralTasks') task = allData.edu.generalTasks[taskId];
+    else if (parts[0] === 'workProjects') task = allData.work.projects[parts[1]]?.tasks?.[taskId];
+    else if (parts[0] === 'eduProjects') task = allData.edu.projects[parts[1]]?.tasks?.[taskId];
+    if (!task) return;
+
+    editingTaskId = { dbPath, taskId };
+    document.getElementById('task-modal-title').textContent = 'Edit Task';
+    document.getElementById('task-title-input').value = task.title || '';
+    document.getElementById('task-desc-input').value = task.description || '';
+    document.getElementById('task-priority-input').value = task.priority || 'medium';
+    document.getElementById('task-due-input').value = task.dueDate || '';
+    populateCategorySelect(dbPath);
+    document.getElementById('task-modal').classList.remove('hidden');
+    document.getElementById('task-title-input').focus();
+  };
+
+  function populateCategorySelect(currentPath) {
+    const select = document.getElementById('task-category-input');
+    let html = '<option value="workGeneralTasks">💼 Work - General</option>';
+    for (const [id, proj] of Object.entries(allData.work.projects)) {
+      html += `<option value="workProjects/${id}/tasks">💼 ${escapeHtml(proj.name)}</option>`;
+    }
+    html += '<option value="eduGeneralTasks">🎓 Education - General</option>';
+    for (const [id, proj] of Object.entries(allData.edu.projects)) {
+      html += `<option value="eduProjects/${id}/tasks">🎓 ${escapeHtml(proj.name)}</option>`;
+    }
+    select.innerHTML = html;
+
+    if (currentPath) {
+      select.value = currentPath;
+    } else {
+      if (currentView.startsWith('work')) {
+        if (currentView === 'work-general') select.value = 'workGeneralTasks';
+        else if (currentView.startsWith('work-project-')) {
+          const projId = currentView.replace('work-project-', '');
+          select.value = `workProjects/${projId}/tasks`;
+        } else select.value = 'workGeneralTasks';
+      } else {
+        if (currentView === 'edu-general') select.value = 'eduGeneralTasks';
+        else if (currentView.startsWith('edu-project-')) {
+          const projId = currentView.replace('edu-project-', '');
+          select.value = `eduProjects/${projId}/tasks`;
+        } else select.value = 'eduGeneralTasks';
+      }
+    }
+  }
+
+  window.saveTask = function() {
+    const title = document.getElementById('task-title-input').value.trim();
+    if (!title) return;
+
+    const taskData = {
+      title,
+      description: document.getElementById('task-desc-input').value.trim(),
+      priority: document.getElementById('task-priority-input').value,
+      dueDate: document.getElementById('task-due-input').value,
+      completed: false,
+      createdAt: Date.now()
+    };
+
+    const dbPath = document.getElementById('task-category-input').value;
+
+    if (editingTaskId) {
+      const oldPath = editingTaskId.dbPath;
+      const taskId = editingTaskId.taskId;
+
+      // Preserve completed status when editing
+      const parts = oldPath.split('/');
+      let existingTask;
+      if (parts[0] === 'workGeneralTasks') existingTask = allData.work.generalTasks[taskId];
+      else if (parts[0] === 'eduGeneralTasks') existingTask = allData.edu.generalTasks[taskId];
+      else if (parts[0] === 'workProjects') existingTask = allData.work.projects[parts[1]]?.tasks?.[taskId];
+      else if (parts[0] === 'eduProjects') existingTask = allData.edu.projects[parts[1]]?.tasks?.[taskId];
+      if (existingTask) taskData.completed = existingTask.completed;
+      taskData.createdAt = existingTask?.createdAt || Date.now();
+
+      if (oldPath === dbPath) {
+        update(ref(db, `${userPath()}/${dbPath}/${taskId}`), taskData);
+      } else {
+        remove(ref(db, `${userPath()}/${oldPath}/${taskId}`));
+        const newRef = push(ref(db, `${userPath()}/${dbPath}`));
+        set(newRef, taskData);
+      }
+    } else {
+      const taskRef = push(ref(db, `${userPath()}/${dbPath}`));
+      set(taskRef, taskData);
+    }
+
+    closeModal('task-modal');
+  };
+
+  // Notes CRUD
+  window.openNoteModal = function(dbPath) {
+    editingNoteId = null;
+    window._currentNoteDbPath = dbPath;
+    document.getElementById('note-modal-title').textContent = 'New Note';
+    document.getElementById('note-title-input').value = '';
+    document.getElementById('note-content-input').value = '';
+    selectedNoteColor = '#FFFFFF';
+    document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+    document.querySelector('.color-option[data-color="#FFFFFF"]').classList.add('selected');
+    document.getElementById('note-modal').classList.remove('hidden');
+    document.getElementById('note-title-input').focus();
+  };
+
+  window.openEditNote = function(dbPath, noteId) {
+    const parts = dbPath;
+    let note;
+    if (parts === 'workNotes') note = allData.work.notes[noteId];
+    else if (parts === 'eduNotes') note = allData.edu.notes[noteId];
+    if (!note) return;
+
+    editingNoteId = { dbPath, noteId };
+    window._currentNoteDbPath = dbPath;
+    document.getElementById('note-modal-title').textContent = 'Edit Note';
+    document.getElementById('note-title-input').value = note.title || '';
+    document.getElementById('note-content-input').value = note.content || '';
+    selectedNoteColor = note.color || '#FFFFFF';
+    document.querySelectorAll('.color-option').forEach(el => {
+      el.classList.toggle('selected', el.dataset.color === selectedNoteColor);
+    });
+    document.getElementById('note-modal').classList.remove('hidden');
+    document.getElementById('note-title-input').focus();
+  };
+
+  window.selectNoteColor = function(el) {
+    selectedNoteColor = el.dataset.color;
+    document.querySelectorAll('.color-option').forEach(e => e.classList.remove('selected'));
+    el.classList.add('selected');
+  };
+
+  window.saveNote = function() {
+    const title = document.getElementById('note-title-input').value.trim();
+    const content = document.getElementById('note-content-input').value.trim();
+    if (!title && !content) return;
+
+    const noteData = {
+      title: title || 'Untitled',
+      content,
+      color: selectedNoteColor,
+      updatedAt: Date.now()
+    };
+
+    const dbPath = window._currentNoteDbPath;
+
+    if (editingNoteId) {
+      update(ref(db, `${userPath()}/${dbPath}/${editingNoteId.noteId}`), noteData);
+    } else {
+      noteData.createdAt = Date.now();
+      const noteRef = push(ref(db, `${userPath()}/${dbPath}`));
+      set(noteRef, noteData);
+    }
+
+    closeModal('note-modal');
+  };
+
+  window.deleteNote = function(dbPath, noteId) {
+    if (confirm('Delete this note?')) {
+      remove(ref(db, `${userPath()}/${dbPath}/${noteId}`));
+    }
+  };
+
+  // Projects CRUD
+  window.openProjectModal = function(section) {
+    editingProjectSection = section;
+    document.getElementById('project-modal-title').textContent =
+      section === 'work' ? 'New Project' : 'New Course';
+    document.getElementById('project-name-input').value = '';
+    document.getElementById('project-icon-input').value = section === 'work' ? '📁' : '📚';
+    document.getElementById('project-modal').classList.remove('hidden');
+    document.getElementById('project-name-input').focus();
+  };
+
+  window.saveProject = function() {
+    const name = document.getElementById('project-name-input').value.trim();
+    if (!name) return;
+    const icon = document.getElementById('project-icon-input').value.trim() || '📁';
+    const dbKey = editingProjectSection === 'work' ? 'workProjects' : 'eduProjects';
+    const projRef = push(ref(db, `${userPath()}/${dbKey}`));
+    set(projRef, { name, icon, tasks: {} });
+    closeModal('project-modal');
+  };
+
+  window.deleteProject = function(section, projId) {
+    if (!confirm('Delete this project/course and all its tasks?')) return;
+    const dbKey = section === 'work' ? 'workProjects' : 'eduProjects';
+    remove(ref(db, `${userPath()}/${dbKey}/${projId}`));
+    if (currentView === `${section}-project-${projId}`) {
+      navigateTo(section === 'work' ? 'work-all' : 'edu-all');
+    }
+  };
+
+  window.closeModal = function(id) {
+    document.getElementById(id).classList.add('hidden');
+  };
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const target = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const diff = Math.round((target - today) / (1000 * 60 * 60 * 24));
+
+    if (diff === 0) return 'Today';
+    if (diff === 1) return 'Tomorrow';
+    if (diff === -1) return 'Yesterday';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+    }
+    if (e.key === 'n' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      openTaskModal();
+    }
+  });
+
+  // Service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => setInterval(() => reg.update(), 60 * 60 * 1000));
+  }
+
+  init();
+</script>
+
+</body>
+</html>
