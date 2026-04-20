@@ -1230,7 +1230,7 @@
   window.signInWithGoogle = function() {
     signInWithPopup(auth, googleProvider).catch(err => {
       console.error('Sign-in error:', err);
-      alert('Sign-in failed. Please try again.');
+      alert('Sign-in failed: ' + err.code + '\n' + err.message);
     });
   };
 
